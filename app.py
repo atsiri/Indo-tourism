@@ -248,7 +248,7 @@ if check_password():
                 
                 fig_trans = px.pie(transport_agg, values='value', names='Transport Mode', color_discrete_sequence=px.colors.qualitative.Set2)
                 fig_trans.update_traces(hovertemplate="<b>%{label}</b><br>Trips: %{value:,.1f} (Thousands)<br>Percentage: %{percent}<extra></extra>")
-                fig_trans.update_layout(margin={"r":0,"t":40,"l":0,"b":0})
+                fig_trans.update_layout(margin={"r":0,"t":40,"l":0,"b":0}, height=300)
                 st.plotly_chart(fig_trans, use_container_width=True)
             else:
                 st.info("No Transport data available.")
@@ -260,7 +260,7 @@ if check_password():
             
             if not df_los.empty:
                 fig_los = px.line(df_los.sort_values('year'), x='year', y='value', markers=True, labels={'value': 'Days', 'year': 'Year'}, line_shape="spline")
-                fig_los.update_layout(margin={"r":0,"t":40,"l":0,"b":0})
+                fig_los.update_layout(margin={"r":0,"t":40,"l":0,"b":0}, height=300)
                 st.plotly_chart(fig_los, use_container_width=True)
             else:
                 st.info("No Length of Stay data available.")
@@ -272,7 +272,7 @@ if check_password():
             
             if not df_exp.empty:
                 fig_exp = px.bar(df_exp.sort_values('year'), x='year', y='value', labels={'value': 'Expenditure (Million USD)', 'year': 'Year'}, color_discrete_sequence=['#2ca02c'])
-                fig_exp.update_layout(margin={"r":0,"t":40,"l":0,"b":0})
+                fig_exp.update_layout(margin={"r":0,"t":40,"l":0,"b":0}, height=300)
                 st.plotly_chart(fig_exp, use_container_width=True)
             else:
                 st.info("No Expenditure data available.")
