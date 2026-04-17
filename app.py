@@ -4,6 +4,8 @@ import plotly.express as px
 import numpy as np
 import glob
 import streamlit.components.v1 as components
+from PIL import Image # <-- Added to read the images
+import os
 
 # --- 1. PASSWORD PROTECTION ---
 def check_password():
@@ -54,6 +56,9 @@ if check_password():
 # ---------------------------------
 
     # --- PAGE CONFIGURATION ---
+    if "selected_logo" not in st.session_state:
+        st.session_state.selected_logo = None
+    
     st.set_page_config(page_title="Indonesia Tourism Dashboard", layout="wide")
     st.title("🇮🇩 Indonesia Tourism Statistics Dashboard")
 
@@ -90,6 +95,23 @@ if check_password():
     df_general, df_nationality, df_residence, df_guests = load_data()
 
     # --- SIDEBAR FILTERS ---
+    st.sidebar.header("System Dynamics Diagram")
+    #col_btn1, col_btn2 = st.sidebar.columns(2)
+
+    # Buttons to select the image
+    if st.sidebar.button("Tourist Flow"):
+        st.session_state.selected_logo = "image (1).png"
+        st.subheader("Tourist Flow Diagram")
+    if st.sidebar.button("Duration of Stay"):
+        st.session_state.selected_logo = "image (2).png"
+        st.subheader("Duration of Stay Diagram")
+
+    # Button to clear the image view
+    if st.session_state.selected_logo:
+        if st.sidebar.button("Close Image Viewer"):
+            st.session_state.selected_logo = None
+            
+    st.sidebar.markdown("---")        
     st.sidebar.header("Filters")
     available_years = []
     for d in [df_general, df_nationality, df_residence, df_guests]:
@@ -103,6 +125,33 @@ if check_password():
         st.error("No year data available to filter.")
         st.stop()
 
+    # --- INTERACTIVE ZOOMABLE IMAGE VIEWER (OVERLAY) ---
+    if st.session_state.selected_logo:
+        st.markdown("---")
+        #st.subheader(f"🖼️ Interactive Viewer: {st.session_state.selected_logo}")
+        st.markdown("*Scroll to zoom. Click and drag to pan around the image.*")
+        
+        try:
+            # Load the image
+            img = Image.open(st.session_state.selected_logo)
+            
+            # Plotly Express allows us to treat an image like a map
+            fig_img = px.imshow(img)
+            fig_img.update_layout(
+                coloraxis_showscale=False,
+                margin=dict(l=0, r=0, t=0, b=0),
+                dragmode="pan", # Defaults to panning
+                height=500
+            )
+            # Hide axes for a clean look
+            fig_img.update_xaxes(showticklabels=False, showgrid=False, zeroline=False)
+            fig_img.update_yaxes(showticklabels=False, showgrid=False, zeroline=False)
+            
+            st.plotly_chart(fig_img, use_container_width=True)
+        except FileNotFoundError:
+            st.error(f"Could not find `{st.session_state.selected_logo}`. Please ensure it is in the same folder as this script.")
+        st.markdown("---")
+        
 
     # --- DASHBOARD LAYOUT (TOP SECTION: MAP & TABLE) ---
     st.header("Inbound Tourism Map")
