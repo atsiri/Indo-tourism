@@ -177,11 +177,43 @@ if check_password():
                 st.plotly_chart(fig_map, use_container_width=True)
             
             with col_table:
-                st.markdown(f"**{map_option}**")
-                # Create a clean subset of the data for the table
+                # --- HIGHLIGHT STATISTICS ---
+                st.markdown(f"**Key Highlights ({selected_year_range[0]}-{selected_year_range[1]})**")
+                
+                # Compute total sum for map data
+                total_val = df_map_data['value'].sum()
+                
+                # Compute averages/sums from the general aggregate dataset
+                df_gen_range = df_general[(df_general['year'] >= selected_year_range[0]) & (df_general['year'] <= selected_year_range[1])]
+                
+                los_series = df_gen_range[df_gen_range['indicator_label'] == 'inbound - trips - length of stay - average - total - visitors']['value']
+                avg_stay = los_series.mean() if not los_series.empty else np.nan
+                
+                exp_series = df_gen_range[df_gen_range['indicator_label'] == 'inbound - expenditure - balance of payments - travel - visitors']['value']
+                total_exp = exp_series.sum() if not exp_series.empty else np.nan
+                
+                # Metrics Layout (2 side-by-side, 1 full width)
+                m1, m2 = st.columns(2)
+                metric_name = "Trips" if "Trips" in value_label else "Guests"
+                m1.metric(f"Total {metric_name}", f"{total_val:,.0f}k")
+                
+                if pd.notna(avg_stay):
+                    m2.metric("Avg Stay", f"{avg_stay:,.1f} Days")
+                else:
+                    m2.metric("Avg Stay", "N/A")
+                    
+                if pd.notna(total_exp) and total_exp > 0:
+                    st.metric("Total Expenditure", f"${total_exp:,.0f} Million USD")
+                else:
+                    st.metric("Total Expenditure", "N/A")
+                
+                # --- RAW DATA TABLE ---
+                st.markdown(f"**Raw Data: {map_option}**")
                 table_display = df_filtered[['year', 'partner_area_label', 'value']].copy()
                 table_display.columns = ['Year', 'Country/Region', value_label]
-                st.dataframe(table_display, use_container_width=True, height=450) # Set a fixed height to match map roughly
+                
+                # Reduced height to ~230 to fit the metrics above it and perfectly match the map height
+                st.dataframe(table_display, use_container_width=True, height=220)
         else:
             st.info("No map data available for the selected range.")
     else:
